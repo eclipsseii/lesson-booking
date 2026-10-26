@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Запись на занятие</title>
+
+  <!-- Шрифты -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== Экран 1: день и время ===== -->
+  <section id="screen-day" class="screen">
+    <div class="scroll">
+      <h1>Запись на занятие</h1>
+
+      <div class="month-nav">
+        <button id="prev-month" class="icon-btn" aria-label="Предыдущий месяц">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span id="month-title"></span>
+        <button id="next-month" class="icon-btn" aria-label="Следующий месяц">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <div class="weekdays">
+        <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+      </div>
+      <!-- сюда app.js нарисует дни месяца -->
+      <div id="calendar" class="calendar"></div>
+
+      <div class="line"></div>
+
+      <div class="row-between">
+        <h2>Свободное время</h2>
+        <span id="day-label" class="muted"></span>
+      </div>
+      <!-- сюда app.js нарисует свободные окошки -->
+      <div id="slots" class="slots"></div>
+    </div>
+
+    <div class="bottom">
+      <button id="to-form" class="btn" disabled>Выберите день и время</button>
+    </div>
+  </section>
+
+  <!-- ===== Экран 2: анкета ===== -->
+  <section id="screen-form" class="screen" hidden>
+    <div class="topbar">
+      <button id="back" class="icon-btn" aria-label="Назад">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h1>Анкета</h1>
+    </div>
+
+    <div class="scroll">
+      <div class="chosen">
+        <span id="chosen-label"></span>
+        <button id="change" class="link-btn">Изменить</button>
+      </div>
+
+      <div class="field">
+        <label for="name">Фамилия и имя</label>
+        <input id="name" type="text" maxlength="100" placeholder="Например, Сафина Алина">
+      </div>
+
+      <div class="field">
+        <label for="teacher">Учитель</label>
+        <input id="teacher" type="text" maxlength="100" placeholder="Фамилия учителя">
+      </div>
+
+      <div class="field">
+        <div class="row-between">
+          <label for="comment">Комментарий</label>
+          <span id="counter" class="muted small">0/200</span>
+        </div>
+        <textarea id="comment" maxlength="200" rows="4" placeholder="Необязательно"></textarea>
+      </div>
+
+      <p id="form-error" class="error" hidden></p>
+    </div>
+
+    <div class="bottom">
+      <button id="send" class="btn">Отправить заявку</button>
+      <p class="muted small center">Время закрепится за вами, пока заявку не рассмотрят</p>
+    </div>
+  </section>
+
+  <!-- ===== Экран 3: заявка отправлена ===== -->
+  <section id="screen-done" class="screen" hidden>
+    <div class="center-screen">
+      <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true"><circle cx="44" cy="44" r="44" fill="#F3EFFC"/><circle cx="44" cy="44" r="28" fill="#7A5BC7"/><path d="M32 45l8 8 16-18" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1>Заявка отправлена</h1>
+      <p class="muted">Время закреплено за вами, пока заявку не рассмотрят.</p>
+      <div class="summary">
+        <div><span>Дата</span><b id="done-date"></b></div>
+        <div><span>Время</span><b id="done-time"></b></div>
+        <div><span>Статус</span><b class="pill">на рассмотрении</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Экран 3а: уже записан на этот день ===== -->
+  <section id="screen-already" class="screen" hidden>
+    <div class="center-screen">
+      <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true"><circle cx="44" cy="44" r="44" fill="#F3EFFC"/><rect x="24" y="27" width="40" height="36" rx="7" fill="none" stroke="#7A5BC7" stroke-width="3"/><path d="M24 38h40M34 22v8M54 22v8M44 45v7" fill="none" stroke="#7A5BC7" stroke-width="3" stroke-linecap="round"/><circle cx="44" cy="57" r="1.8" fill="#7A5BC7"/></svg>
+      <h1>Вы уже записаны на этот день</h1>
+      <p class="muted">На этот день уже есть заявка на это имя. Второй раз записаться на тот же день нельзя.</p>
+    </div>
+    <div class="bottom">
+      <button id="other-day" class="btn btn-light">Выбрать другой день</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- Скрипты: сначала библиотека Supabase, потом наши файлы — порядок важен -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="helpers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

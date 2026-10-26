@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админка</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Вход -->
+  <section id="screen-login" class="screen">
+    <div class="scroll">
+      <h1>Вход для админа</h1>
+
+      <div class="field">
+        <label for="email">Почта</label>
+        <input id="email" type="email" autocomplete="username">
+      </div>
+
+      <div class="field">
+        <label for="password">Пароль</label>
+        <input id="password" type="password" autocomplete="current-password">
+      </div>
+
+      <p id="login-error" class="error" hidden></p>
+    </div>
+    <div class="bottom">
+      <button id="login" class="btn">Войти</button>
+    </div>
+  </section>
+
+  <!-- Заявки -->
+  <section id="screen-requests" class="screen" hidden>
+    <div class="scroll">
+      <div class="row-between">
+        <h1>Заявки</h1>
+        <span id="pending-count" class="pill"></span>
+      </div>
+      <div id="requests" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      <button id="logout" class="link-btn">Выйти</button>
+    </div>
+  </section>
+
+  <!-- Расписание и Окошки -->
+  <section id="screen-day" class="screen" hidden>
+    <div class="scroll">
+      <div>
+        <h1 id="day-title"></h1>
+        <p id="day-hint" class="muted"></p>
+      </div>
+
+      <div class="month-nav">
+        <button id="prev-month" class="icon-btn" aria-label="Предыдущий месяц">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span id="month-title"></span>
+        <button id="next-month" class="icon-btn" aria-label="Следующий месяц">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <div class="weekdays">
+        <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+      </div>
+      <div id="calendar" class="calendar"></div>
+
+      <div class="legend">
+        <span><i class="mark open"></i>есть окошки</span>
+        <span><i class="mark dot"></i>есть заявки</span>
+      </div>
+
+      <div class="line"></div>
+
+      <h2 id="day-label"></h2>
+      <div id="day-list"></div>
+    </div>
+  </section>
+
+  <!-- Вкладки -->
+  <nav id="tabs" class="tabs" hidden>
+    <button id="tab-requests" class="tab active">Заявки</button>
+    <button id="tab-schedule" class="tab">Расписание</button>
+    <button id="tab-slots" class="tab">Окошки</button>
+  </nav>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="helpers.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
