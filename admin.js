@@ -86,7 +86,22 @@ async function loadRequests() {
     return;
   }
 
+  const order = { pending: 0, approved: 1, rejected: 2 };
+  const titles = { pending: 'Ждут решения', approved: 'Одобренные', rejected: 'Отклонённые' };
+  data.sort(function (a, b) {
+    if (a.status !== b.status) return order[a.status] - order[b.status];
+    if (a.status === 'pending') return a.created_at < b.created_at ? 1 : -1;
+    return (a.slot_date + a.slot_time) < (b.slot_date + b.slot_time) ? -1 : 1;
+  });
+
+  let lastStatus = null;
+
   data.forEach(function (r) {
+    if (r.status !== lastStatus) {
+      box.appendChild(el('h2', 'group-title', titles[r.status]));
+      lastStatus = r.status;
+    }
+
     const card = el('div', 'card');
 
     const top = el('div', 'row-between');
