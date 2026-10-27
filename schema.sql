@@ -1,8 +1,14 @@
+-- =====================================================
+-- База данных для сайта записи.
+-- Вставь весь этот файл в Supabase → SQL Editor → Run.
+-- =====================================================
 
 
+-- 1. Окошки, которые сестра открыла для записи.
+--    Чего нет в этой таблице — того у учеников просто нет.
 create table open_slots (
-  slot_date date not null,   
-  slot_time text not null,   
+  slot_date date not null,   -- день, например 2026-11-07
+  slot_time text not null,   -- время, например '15:00'
   primary key (slot_date, slot_time)
 );
 
@@ -19,14 +25,18 @@ create table requests (
              check (status in ('pending', 'approved', 'rejected'))
 );
 
--- 3. На одно окошко может быть только одна живая заявка, (отклонённые не считаются — их окошко снова свободно)
+-- 3. На одно окошко может быть только одна живая заявка
+--    (отклонённые не считаются — их окошко снова свободно)
 create unique index one_request_per_slot
   on requests (slot_date, slot_time)
   where status <> 'rejected';
 
 
-
--- Защита 
+-- =====================================================
+-- Защита (RLS — Row Level Security).
+-- Посетители не могут читать и менять таблицы напрямую.
+-- Только вошедший админ (сестра) может.
+-- =====================================================
 alter table open_slots enable row level security;
 alter table requests   enable row level security;
 
@@ -35,11 +45,14 @@ create policy "admin opens slot"       on open_slots for insert to authenticated
 create policy "admin closes slot"      on open_slots for delete to authenticated using (true);
 create policy "admin reads requests"   on requests   for select to authenticated using (true);
 create policy "admin updates requests" on requests   for update to authenticated using (true);
+create policy "admin deletes requests" on requests   for delete to authenticated using (true);
 
 
--- свободные окошки за период.
+-- =====================================================
+-- Функция 1: свободные окошки за период.
 -- Берёт открытые окошки и убирает те, на которые уже есть заявка.
-
+-- Имён не отдаёт — посетители видят только дату и время.
+-- =====================================================
 create function get_free_slots(from_date date, to_date date)
 returns table (slot_date date, slot_time text)
 language sql
@@ -59,7 +72,15 @@ as $$
 $$;
 
 
--- отправить заявку.
+-- =====================================================
+-- Функция 2: отправить заявку.
+-- Сама всё проверяет и отвечает одним словом:
+--   'ok'       — заявка сохранена
+--   'already'  — этот человек уже записан на этот день
+--   'busy'     — окошко уже заняли или оно закрыто
+--   'empty'    — не заполнены имя или учитель
+--   'bad'      — дата в прошлом или слишком длинный текст
+-- =====================================================
 create function send_request(p_date date, p_time text, p_name text, p_teacher text, p_comment text)
 returns text
 language plpgsql
@@ -67,7 +88,7 @@ security definer
 set search_path = public
 as $$
 declare
-  -- имя без лишних пробелов и маленькими буквами
+  -- имя без лишних пробелов и маленькими буквами, чтобы «Иванова  Мария» = «иванова мария»
   clean_name text := lower(regexp_replace(trim(p_name), '\s+', ' ', 'g'));
 begin
   if clean_name = '' or trim(p_teacher) = '' then
@@ -92,7 +113,7 @@ begin
     return 'already';
   end if;
 
-  -- проверка окошка
+  -- окошко вообще открыто сестрой?
   if not exists (select 1 from open_slots where slot_date = p_date and slot_time = p_time) then
     return 'busy';
   end if;
@@ -109,5 +130,6 @@ exception
 end;
 $$;
 
+-- Разрешаем посетителям вызывать эти две функции
 grant execute on function get_free_slots(date, date) to anon, authenticated;
 grant execute on function send_request(date, text, text, text, text) to anon, authenticated;

@@ -94,7 +94,7 @@ async function loadRequests() {
     top.appendChild(el('span', 'when', niceDate(r.slot_date) + ' · ' + r.slot_time));
     card.appendChild(top);
 
-    card.appendChild(el('p', 'muted', 'Учитель: ' + r.teacher));
+    card.appendChild(el('p', 'muted', 'Учитель в школе: ' + r.teacher));
 
     if (r.comment) {
       card.appendChild(el('p', 'comment', r.comment));
@@ -111,12 +111,28 @@ async function loadRequests() {
       card.appendChild(buttons);
     } else if (r.status === 'approved') {
       card.appendChild(el('p', 'status ok', 'Одобрена'));
+      const cancelButton = el('button', 'link-btn danger', 'Отменить запись');
+      cancelButton.onclick = function () { cancelRequest(r, loadRequests); };
+      card.appendChild(cancelButton);
     } else {
       card.appendChild(el('p', 'status no', 'Отклонена · время снова свободно'));
     }
 
     box.appendChild(card);
   });
+}
+
+// Отмена записи
+async function cancelRequest(r, afterDelete) {
+  const ok = confirm('Отменить запись: ' + r.name + ', ' + niceDate(r.slot_date) + ' ' + r.slot_time + '?\nОкошко снова станет свободным.');
+  if (!ok) return;
+
+  const { error } = await db.from('requests').delete().eq('id', r.id);
+  if (error) {
+    alert('Не получилось отменить');
+    return;
+  }
+  afterDelete();
 }
 
 async function setStatus(id, status) {
@@ -158,7 +174,7 @@ async function loadMonth() {
       .gte('slot_date', firstDay)
       .lte('slot_date', lastDay),
     db.from('requests')
-      .select('slot_date, slot_time, name, status')
+      .select('id, slot_date, slot_time, name, status')
       .gte('slot_date', firstDay)
       .lte('slot_date', lastDay)
       .neq('status', 'rejected')
@@ -257,10 +273,17 @@ function drawSchedule(openTimes, requests) {
 
     if (!request) {
       row.appendChild(el('span', 'who', 'свободно'));
-    } else if (request.status === 'approved') {
-      row.appendChild(el('span', 'who busy', request.name));
     } else {
-      row.appendChild(el('span', 'who', request.name + ' · ждёт'));
+      if (request.status === 'approved') {
+        row.appendChild(el('span', 'who busy', request.name));
+      } else {
+        row.appendChild(el('span', 'who', request.name + ' · ждёт'));
+      }
+      const cancelButton = el('button', 'link-btn danger', 'Отменить');
+      cancelButton.onclick = function () {
+        cancelRequest(Object.assign({ slot_date: selectedDate }, request), loadMonth);
+      };
+      row.appendChild(cancelButton);
     }
 
     box.appendChild(row);

@@ -465,3 +465,5 @@ textarea:focus {
 .mark { display: inline-block; }
 .mark.open { width: 14px; height: 14px; border-radius: 7px; background: var(--accent-soft); border: 1px solid #D9CBF6; }
 .mark.dot { width: 6px; height: 6px; border-radius: 3px; background: var(--accent); margin: 0 4px; }
+/* Отмена записи */
+.link-btn.danger { color: #B42318; flex: none; }

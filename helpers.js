@@ -37,8 +37,8 @@ function niceDate(dateStr) {
 function allTimes() {
   const times = [];
   for (let hour = START_HOUR; hour < END_HOUR; hour++) {
-    times.push(hour + ':00');
-    times.push(hour + ':30');
+    times.push(String(hour).padStart(2, '0') + ':00');
+    times.push(String(hour).padStart(2, '0') + ':30');
   }
   return times;
 }
