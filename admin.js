@@ -91,6 +91,7 @@ async function loadRequests() {
   data.sort(function (a, b) {
     if (a.status !== b.status) return order[a.status] - order[b.status];
     if (a.status === 'pending') return a.created_at < b.created_at ? 1 : -1;
+    if (a.status === 'rejected') return (a.slot_date + a.slot_time) < (b.slot_date + b.slot_time) ? 1 : -1;
     return (a.slot_date + a.slot_time) < (b.slot_date + b.slot_time) ? -1 : 1;
   });
 
@@ -299,6 +300,14 @@ function cancelButtonFor(request) {
 }
 
 
+// Прошло ли уже это время сегодня
+function isPastTime(dateStr, time) {
+  const d = new Date();
+  const nowTime = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  return dateStr === todayString() && time <= nowTime;
+}
+
+
 // Расписание
 function drawSchedule(openTimes, requests) {
   const box = document.getElementById('day-list');
@@ -314,7 +323,12 @@ function drawSchedule(openTimes, requests) {
     row.appendChild(el('span', 'time', time));
 
     if (!request) {
-      row.appendChild(el('span', 'who', 'свободно'));
+      if (isPastTime(selectedDate, time)) {
+        row.classList.add('past-row');
+        row.appendChild(el('span', 'who', 'прошло'));
+      } else {
+        row.appendChild(el('span', 'who', 'свободно'));
+      }
     } else {
       row.classList.add('booked');
       row.appendChild(bookingInfo(request));
@@ -352,6 +366,9 @@ function drawSlots(openTimes, requests) {
       row.classList.add('booked');
       row.appendChild(bookingInfo(request));
       row.appendChild(cancelButtonFor(request));
+    } else if (isPastTime(selectedDate, time)) {
+      row.classList.add('past-row');
+      row.appendChild(el('span', 'who', 'прошло'));
     } else {
       row.appendChild(el('span', 'who', isOpen ? 'открыто' : 'закрыто'));
 
