@@ -174,7 +174,7 @@ async function loadMonth() {
       .gte('slot_date', firstDay)
       .lte('slot_date', lastDay),
     db.from('requests')
-      .select('id, slot_date, slot_time, name, status')
+      .select('id, slot_date, slot_time, name, teacher, comment, status')
       .gte('slot_date', firstDay)
       .lte('slot_date', lastDay)
       .neq('status', 'rejected')
@@ -257,6 +257,33 @@ function drawDay() {
 }
 
 
+// Запись в строке: имя, учитель, комментарий
+function bookingInfo(request) {
+  const box = el('div', 'booking');
+
+  if (request.status === 'approved') {
+    box.appendChild(el('span', 'who busy', request.name));
+  } else {
+    box.appendChild(el('span', 'who', request.name + ' · ждёт'));
+  }
+
+  box.appendChild(el('span', 'booking-line', 'Учитель в школе: ' + request.teacher));
+
+  if (request.comment) {
+    box.appendChild(el('span', 'booking-comment', request.comment));
+  }
+  return box;
+}
+
+function cancelButtonFor(request) {
+  const button = el('button', 'link-btn danger', 'Отменить');
+  button.onclick = function () {
+    cancelRequest(Object.assign({ slot_date: selectedDate }, request), loadMonth);
+  };
+  return button;
+}
+
+
 // Расписание
 function drawSchedule(openTimes, requests) {
   const box = document.getElementById('day-list');
@@ -274,16 +301,9 @@ function drawSchedule(openTimes, requests) {
     if (!request) {
       row.appendChild(el('span', 'who', 'свободно'));
     } else {
-      if (request.status === 'approved') {
-        row.appendChild(el('span', 'who busy', request.name));
-      } else {
-        row.appendChild(el('span', 'who', request.name + ' · ждёт'));
-      }
-      const cancelButton = el('button', 'link-btn danger', 'Отменить');
-      cancelButton.onclick = function () {
-        cancelRequest(Object.assign({ slot_date: selectedDate }, request), loadMonth);
-      };
-      row.appendChild(cancelButton);
+      row.classList.add('booked');
+      row.appendChild(bookingInfo(request));
+      row.appendChild(cancelButtonFor(request));
     }
 
     box.appendChild(row);
@@ -314,7 +334,9 @@ function drawSlots(openTimes, requests) {
     row.appendChild(el('span', 'time', time));
 
     if (request) {
-      row.appendChild(el('span', 'who busy', request.name));
+      row.classList.add('booked');
+      row.appendChild(bookingInfo(request));
+      row.appendChild(cancelButtonFor(request));
     } else {
       row.appendChild(el('span', 'who', isOpen ? 'открыто' : 'закрыто'));
 
