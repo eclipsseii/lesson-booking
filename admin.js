@@ -67,6 +67,7 @@ async function loadRequests() {
     .from('requests')
     .select('*')
     .gte('slot_date', todayString())
+    .neq('status', 'rejected')
     .order('slot_date')
     .order('slot_time');
 
@@ -171,6 +172,10 @@ let monthRequests = [];
 
 async function loadMonth() {
   document.getElementById('month-title').textContent = MONTHS[viewMonth] + ' ' + viewYear;
+
+  // назад можно листать только на один месяц
+  const monthsBack = (now.getFullYear() - viewYear) * 12 + (now.getMonth() - viewMonth);
+  document.getElementById('prev-month').disabled = monthsBack >= 1;
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const firstDay = toDateString(viewYear, viewMonth, 1);

@@ -6,6 +6,20 @@ let selectedTime = null;
 let free = [];
 const monthCache = {};
 
+// Статистика: случайный номер визита, без личных данных
+const visitId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+const device = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
+
+function track(event) {
+  db.from('events').insert({
+    visit_id: visitId,
+    event: event,
+    slot_date: selectedDate,
+    slot_time: selectedTime,
+    device: device
+  }).then(function () {});
+}
+
 function fetchMonth(year, month) {
   const key = year + '-' + month;
   if (!monthCache[key]) {
@@ -90,6 +104,7 @@ function drawCalendar() {
       selectedTime = null;
       drawCalendar();
       drawSlots();
+      track('day_selected');
     };
     box.appendChild(button);
   }
@@ -114,6 +129,7 @@ function drawSlots() {
     button.onclick = function () {
       selectedTime = time;
       drawSlots();
+      track('time_selected');
     };
     box.appendChild(button);
   });
@@ -148,6 +164,7 @@ document.getElementById('to-form').onclick = function () {
   document.getElementById('chosen-label').textContent = niceDate(selectedDate) + ' · ' + selectedTime;
   document.getElementById('form-error').hidden = true;
   showScreen('screen-form');
+  track('form_opened');
 };
 
 document.getElementById('back').onclick = function () { showScreen('screen-day'); };
@@ -195,12 +212,15 @@ document.getElementById('send').onclick = async function () {
     errorBox.textContent = 'Что-то пошло не так. Попробуйте ещё раз.';
     errorBox.hidden = false;
   } else if (data === 'ok') {
+    track('request_sent');
     document.getElementById('done-date').textContent = niceDate(selectedDate);
     document.getElementById('done-time').textContent = selectedTime;
     showScreen('screen-done');
   } else if (data === 'already') {
+    track('request_already');
     showScreen('screen-already');
   } else if (data === 'busy') {
+    track('request_busy');
     alert('Это время только что заняли. Выберите другое.');
     selectedTime = null;
     loadMonth(true);
@@ -211,4 +231,5 @@ document.getElementById('send').onclick = async function () {
   }
 };
 
+track('page_open');
 loadMonth();
